@@ -17,7 +17,7 @@ def main(stdscr):
     curses.curs_set(0)          # Hiding cursor visibility (https://docs.python.org/2/library/curses.html#curses.curs_set)
     screen=curses.newwin(0,0,0,0)   #create a new window with terminal size
     screen.keypad(1)               # enable processing of functional keys by curses (ex. arrow keys)
-    screen.border(1)              # set a border for the window
+    screen.border(0)              # set a border for the window
     screen.nodelay(1)       #continous getch command
     dim=screen.getmaxyx()   #max y,x of the screen
     curses.start_color()
@@ -33,19 +33,25 @@ def main(stdscr):
     move=[0,1]              #move the snake y,x
     snake=[10,10]
     monster=[20,20]
-    snake_body=[snake[:]]*3
+    snake_body=[snake[:]]*10
     last=snake_body[-1][:]
     slen=len(snake)       #snake initial position
     key=-1                  # define key unknown key
     #if screen.inch(20,20)==ord(" "):
         #screen.addstr(20,20,ord("d"))
     #game loop
+    for i in range(2,dim[1]-2,1):
+        screen.addstr(0,i,"B")
+    #border=[[2,dim[0]-2],[2,dim[1]-2],[dim[0]-2,dim[1]-2],[dim[1]-2],dim[0]-2]
     while key!=27:
+
         time.sleep(speed)
         if last not in snake_body:
             screen.addstr(last[0],last[1]," ")
         screen.addstr(snake[0],snake[1],"X",curses.color_pair(color))
         screen.addstr(1,1,'SCORE:'+str(score))
+
+
         if food_ok:
 
             foods=food(dim[0],dim[1])
@@ -80,6 +86,17 @@ def main(stdscr):
              screen.addstr(foods[0],foods[1]," ")
              snake_body.append(snake_body[-1])
              food_ok=True
+        if snake[0]==1 or snake[0]==dim[0]-1 or snake[1]==1 or snake[1]==dim[1]-1:
+            screen.addstr(int(dim[0]/2),int(dim[1]/2),"GAME OVER")
+            screen.refresh()
+            time.sleep(2)
+            break
+        if snake in snake_body:
+            screen.addstr(int(dim[0]/2),int(dim[1]/2),"GAME OVER")
+            screen.refresh()
+            time.sleep(2)
+            break
+
 
         last=snake_body[-1]
 
