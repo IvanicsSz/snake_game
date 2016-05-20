@@ -98,7 +98,7 @@ def main(stdscr):
     snake=[10,10]
     start_monster=25
     monsterxy=[start_monster,start_monster]
-    snake_body=[snake[:]]*20
+    snake_body=[snake[:]]*4
     last=snake_body[-1][:]
     slen=len(snake)
     key=-1
