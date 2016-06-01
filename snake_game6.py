@@ -1,6 +1,6 @@
 import curses
 import time
-from curses import KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
+from curses import KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_ENTER
 from curses import wrapper
 import random
 
@@ -64,6 +64,7 @@ def keyboard(key, move):
         return move
 
 
+
 def manufactory(snake_body, snake, color):
     global screen
     dims = screen.getmaxyx()
@@ -78,8 +79,11 @@ def manufactory(snake_body, snake, color):
 
     # print (inv)
 def print_highscore():
+    # global screen
+    # dims = screen.getmaxyx()
     score_list = []
     print_list = []
+    # line = 0
     for k, i in enumerate(open("highscore.csv", "r"), start=1):
         i = i.replace("\n", "")
         score_list.append(i.split(","))
@@ -89,6 +93,8 @@ def print_highscore():
     key_max = len(max(score_list, key=len))
     print("{0:^{1}}".format("High Score:", key_max+5))
     for i in print_list:
+        # screen.addstr(int(dims[0]/2)-line, int((dims[1]-key_max)/2), "{0:>{2}}{1:>5}".format(i, score_list[i], key_max))
+        # line += 2
         print("{0:>{2}}{1:>5}".format(i, score_list[i], key_max))
     return
 
@@ -97,15 +103,37 @@ def highscore(name, score):
     with open("highscore.csv", "a") as a:
         a.write("{0},{1}\n".format(name, str(score)))
 
+
 def main_menu():
-    main_win = curses.newwin(0, 0, 0, 0)
-    dims = screen.getmaxyx()
+    colour_list = []
+    main_win = curses.initscr()
+    main_win.nodelay(1)
+    main_win.keypad(1)
+    curses.use_default_colors()
+    dims = main_win.getmaxyx()
     msg1 = "Play Game"
     msg2 = "High Scores"
     msg3 = "Quit"
-    screen.addstr(int(dimy/2), int((dimx-len(msg1))/2), msg1)
-    screen.addstr(int(dimy/2)-2, int((dimx-len(msg2))/2), msg2)
-    screen.addstr(int(dimy/2)-2, int((dimx-len(msg2))/2), msg3)
+    count = 1
+    color = 0
+    key = -1
+    while key != 27:
+        graphics = [0] * 3
+        graphics[color] = curses.A_REVERSE
+        key = main_win.getch()
+        if key == KEY_DOWN:
+            color = (color + 1) % 3
+        if key == KEY_UP:
+            color = (color - 1) % 3
+        if key == ord("\n") and color == 0:
+            break
+        if key == ord("\n") and color == 1:
+            print_highscore()
+        main_win.addstr(int(dims[0]/2), int((dims[1]-len(msg3))/2), msg3, graphics[2])
+        main_win.addstr(int(dims[0]/2)-2, int((dims[1]-len(msg2))/2), msg2, graphics[1])
+        main_win.addstr(int(dims[0]/2)-4, int((dims[1]-len(msg1))/2), msg1, graphics[0])
+        main_win.refresh()
+
 
 def game_over(sn, sb, sy, sx, dimy, dimx, score):
     global screen
@@ -141,6 +169,7 @@ def init():
 
 def main(stdscr):
 
+    main_menu()
     init()
     # main variables
     global screen
