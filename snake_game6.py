@@ -7,6 +7,10 @@ import random
 
 def monster(mon, msg):
     global screen
+    # monster_scr = curses.newwin(10, 10, 20, 20)
+    # Return a new window, whose left-upper corner is at (begin_y, begin_x), and whose height/width is nlines/ncols.
+    # monster_scr.border(1)
+    # monster_scr.addstr(21, 21, msg)
     q, vertical, horizontal = -1, 1, 1
     dims = screen.getmaxyx()
     y = mon[0]
@@ -19,7 +23,6 @@ def monster(mon, msg):
     if x == dims[1]-len(msg)-2:
         vertical = vertical*-1
         x = 3
-
     elif x == 2:
         horizontal = 1
     y += vertical
@@ -28,11 +31,12 @@ def monster(mon, msg):
 # paint the wall
 
 
-def wall(space=2, longs=1, y=0, x=0):
+def wall(space=2, longs=1, y=0, x=0, snake_body=[10, 10]):
     global screen
     dims = screen.getmaxyx()
-    random_x = random.randint(space, (dims[1]-space))
-    random_y = random.randint(space, (dims[0]-space))
+    rng = 5
+    random_x = random.randint(space + rng, (dims[1]-space - rng))
+    random_y = random.randint(space + rng, (dims[0]-space - rng))
     curses.start_color()
     curses.init_pair(3, curses.COLOR_RED, curses.COLOR_RED)
     if not y and not x:
@@ -43,16 +47,13 @@ def wall(space=2, longs=1, y=0, x=0):
             screen.addstr(space, i, "B", curses.color_pair(3))
             screen.addstr(dims[0]-space, i, "B", curses.color_pair(3))
     if y:
-
         for i in range(space, (dims[0]-space)//longs, 1):
             screen.addstr(i, random_x, "B", curses.color_pair(3))
         return (dims[0]-space)//longs, random_x
-
     if x:
         for i in range(space, (dims[1]-space)//longs, 1):
             screen.addstr(random_y, i, "B", curses.color_pair(3))
         return random_y, (dims[1]-space)//longs
-
 # keyboard events
 
 
@@ -79,11 +80,11 @@ def keyboard(key, move):
 
 
 
-def manufactory(snake_body, snake, color):
+def manufactory(snake_body, snake, wall, color):
     global screen
     dims = screen.getmaxyx()
     place = [random.randrange(2, dims[0]-2, 1), random.randrange(2, dims[1]-2, 1)]
-    if place not in (snake_body+[snake]):
+    if place not in (snake_body+[snake]+[wall]):
         screen.addstr(place[0], place[1], "F", curses.color_pair(color))
         return place
 # random place for the objects
@@ -199,19 +200,19 @@ def main(stdscr):
         "move": [0, 1],
         "foods": [2, 2],
         "powers": [2, 2],
-        "monsterxy": [25, 25],
+        "monsterxy": [20, 20],
         "wall": [0, 0]
     }
-    mypad = curses.newpad(10, 10)
-    mypad_pos = 5
-    mypad.border(0)
+    # mypad = curses.newpad(10, 10)
+    # mypad_pos = 5
+    # mypad.border(0)
     start_monster = 25
     snake_body = [_objs["snake"][:]]*4
     last = snake_body[-1][:]
     key = -1
     a = 1
     wall(space)
-    _objs["wall"] += wall(2, 2, 1, 0)
+    wall(2, 2, 0, 1, snake_body)
     # wall(2, 2, 1, 0)
     # main loop for the game actions
     while a != 2:
@@ -229,13 +230,12 @@ def main(stdscr):
         _objs["snake"][0] += _objs["move"][0]
         _objs["snake"][1] += _objs["move"][1]
         screen.addstr(_objs["snake"][0], _objs["snake"][1], "X", curses.color_pair(5) | curses.A_BOLD)
-        # screen.addstr(monsterxy[0],monsterxy[1],"       ")
-        _objs["monsterxy"] = monster(_objs["monsterxy"], "MONSTER")
-
-        # screen.addstr(monsterxy[0],monsterxy[1],"MONSTER")
+        screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "   ") # _objs["monsterxy"][0], _objs["monsterxy"][1]
+        _objs["monsterxy"] = monster(_objs["monsterxy"], "MON")  # _objs["monsterxy"] =
+        screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "MON")
         # objects
         if power_ok:
-            _objs["powers"] = manufactory(snake_body, _objs.get("snake"), 4)
+            _objs["powers"] = manufactory(snake_body, _objs.get("snake"), _objs["wall"], 4)
             power_ok = False
         if (_objs.get("powers") == _objs.get("snake")):
             score += 5
@@ -245,8 +245,10 @@ def main(stdscr):
         if score % 4 == 0 and score != 0 and food_ok:
             power_ok = True
 
+
+
         if food_ok:
-            _objs["foods"] = manufactory(snake_body, _objs.get("snake"), 2)
+            _objs["foods"] = manufactory(snake_body, _objs.get("snake"), _objs["wall"], 2)
             food_ok = False
 
         if (_objs.get("foods") == _objs.get("snake")):
@@ -269,10 +271,10 @@ def main(stdscr):
         for y in range(len(snake_body)-1, 0, -1):
             snake_body[y] = snake_body[y-1][:]
         snake_body[0] = _objs["snake"][:]
-        mypad.scrollok(1)
-        mypad.idlok(1)
-        mypad.scroll(-1)
-        mypad.refresh(mypad_pos, 0, 10, 10, 35, 15)
+        # mypad.scrollok(1)
+        # mypad.idlok(1)
+        # mypad.scroll(-1)
+        # mypad.refresh(mypad_pos, 0, 10, 10, 35, 15)
 
         # mypad.refresh()
         screen.refresh()
