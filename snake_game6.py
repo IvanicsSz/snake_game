@@ -28,17 +28,31 @@ def monster(mon, msg):
 # paint the wall
 
 
-def wall(space, long=1, y=0, x=0):
+def wall(space=2, longs=1, y=0, x=0):
     global screen
     dims = screen.getmaxyx()
+    random_x = random.randint(space, (dims[1]-space))
+    random_y = random.randint(space, (dims[0]-space))
     curses.start_color()
     curses.init_pair(3, curses.COLOR_RED, curses.COLOR_RED)
-    for i in range(space, dims[1]-space, 1):
-        screen.addstr(space, i, "B", curses.color_pair(3))
-        screen.addstr(dims[0]-space, i, "B", curses.color_pair(3))
-    for i in range(space, dims[0]-space, 1):
-        screen.addstr(i, space, "B", curses.color_pair(3))
-        screen.addstr(i, dims[1]-space, "B", curses.color_pair(3))
+    if not y and not x:
+        for i in range(space, dims[0]-space, 1):
+            screen.addstr(i, space, "B", curses.color_pair(3))
+            screen.addstr(i, dims[1]-space, "B", curses.color_pair(3))
+        for i in range(space, dims[1]-space, 1):
+            screen.addstr(space, i, "B", curses.color_pair(3))
+            screen.addstr(dims[0]-space, i, "B", curses.color_pair(3))
+    if y:
+
+        for i in range(space, (dims[0]-space)//longs, 1):
+            screen.addstr(i, random_x, "B", curses.color_pair(3))
+        return (dims[0]-space)//longs, random_x
+
+    if x:
+        for i in range(space, (dims[1]-space)//longs, 1):
+            screen.addstr(random_y, i, "B", curses.color_pair(3))
+        return random_y, (dims[1]-space)//longs
+
 # keyboard events
 
 
@@ -101,7 +115,8 @@ def print_highscore():
 
 def highscore(name, score):
     with open("highscore.csv", "a") as a:
-        a.write("{0},{1}\n".format(name, str(score)))
+        if score:
+            a.write("{0},{1}\n".format(name, str(score)))
 
 
 def main_menu():
@@ -129,6 +144,8 @@ def main_menu():
             break
         if key == ord("\n") and color == 1:
             print_highscore()
+        if key == ord("\n") and color == 2:
+            exit()
         main_win.addstr(int(dims[0]/2), int((dims[1]-len(msg3))/2), msg3, graphics[2])
         main_win.addstr(int(dims[0]/2)-2, int((dims[1]-len(msg2))/2), msg2, graphics[1])
         main_win.addstr(int(dims[0]/2)-4, int((dims[1]-len(msg1))/2), msg1, graphics[0])
@@ -183,6 +200,7 @@ def main(stdscr):
         "foods": [2, 2],
         "powers": [2, 2],
         "monsterxy": [25, 25],
+        "wall": [0, 0]
     }
     mypad = curses.newpad(10, 10)
     mypad_pos = 5
@@ -193,10 +211,13 @@ def main(stdscr):
     key = -1
     a = 1
     wall(space)
+    _objs["wall"] += wall(2, 2, 1, 0)
+    # wall(2, 2, 1, 0)
     # main loop for the game actions
     while a != 2:
         time.sleep(speed)
         speed_normalize(_objs["move"], speed)
+
         if last not in snake_body:
             screen.addstr(last[0], last[1], " ")
         screen.addstr(_objs["snake"][0], _objs["snake"][1], "X", curses.color_pair(color))
