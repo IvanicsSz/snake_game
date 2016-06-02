@@ -5,29 +5,21 @@ from curses import wrapper
 import random
 
 
-def monster(mon, msg):
+def monster(mon, move, msg, vertical=1, horizontal=1):
     global screen
-    # monster_scr = curses.newwin(10, 10, 20, 20)
-    # Return a new window, whose left-upper corner is at (begin_y, begin_x), and whose height/width is nlines/ncols.
-    # monster_scr.border(1)
-    # monster_scr.addstr(21, 21, msg)
-    q, vertical, horizontal = -1, 1, 1
+
     dims = screen.getmaxyx()
     y = mon[0]
     x = mon[1]
     if y == dims[0]-2:
-        y = 3
-        horizontal = horizontal*-1
-    elif y == 2:
-        vertical = 1
+        move[0] = -1
+    if y == 2:
+        move[0] = 1
     if x == dims[1]-len(msg)-2:
-        vertical = vertical*-1
-        x = 3
-    elif x == 2:
-        horizontal = 1
-    y += vertical
-    x += horizontal
-    return y, x
+        move[1] = -1
+    if x == 2:
+        move[1] = 1
+    return move[0], move[1]
 # paint the wall
 
 
@@ -201,7 +193,8 @@ def main(stdscr):
         "foods": [2, 2],
         "powers": [2, 2],
         "monsterxy": [20, 20],
-        "wall": [0, 0]
+        "wall": [0, 0],
+        "mm": [1, 1]
     }
     # mypad = curses.newpad(10, 10)
     # mypad_pos = 5
@@ -215,6 +208,7 @@ def main(stdscr):
     wall(2, 2, 0, 1, snake_body)
     # wall(2, 2, 1, 0)
     # main loop for the game actions
+
     while a != 2:
         time.sleep(speed)
         speed_normalize(_objs["move"], speed)
@@ -227,11 +221,14 @@ def main(stdscr):
         key = screen.getch()
         keyboard(key, _objs["move"])
         temp = []
+
         _objs["snake"][0] += _objs["move"][0]
         _objs["snake"][1] += _objs["move"][1]
-        screen.addstr(_objs["snake"][0], _objs["snake"][1], "X", curses.color_pair(5) | curses.A_BOLD)
         screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "   ") # _objs["monsterxy"][0], _objs["monsterxy"][1]
-        _objs["monsterxy"] = monster(_objs["monsterxy"], "MON")  # _objs["monsterxy"] =
+        _objs["monsterxy"][0] += monster(_objs["monsterxy"], _objs["mm"], "MON")[0]
+        _objs["monsterxy"][1] += monster(_objs["monsterxy"], _objs["mm"], "MON")[1]
+        screen.addstr(_objs["snake"][0], _objs["snake"][1], "X", curses.color_pair(5) | curses.A_BOLD)
+        # _objs["monsterxy"] = monster(_objs["monsterxy"], "MON")  # _objs["monsterxy"] =
         screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "MON")
         # objects
         if power_ok:
