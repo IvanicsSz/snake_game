@@ -5,7 +5,7 @@ from curses import wrapper
 import random
 
 
-def monster(mon, move, msg, vertical=1, horizontal=1):
+def monster(mon, move, msg, wall_check, vertical=1, horizontal=1):
     global screen
 
     dims = screen.getmaxyx()
@@ -44,12 +44,12 @@ def wall(space=2, longs=1, y=0, x=0, snake_body=[10, 10]):
         for i in range(space, (dims[0]-space)//longs, 1):
             screen.addstr(i, random_x, "B", curses.color_pair(3))
             list_y.append([i, random_x])
-        return list_y
+
     if x:
         for i in range(space, (dims[1]-space)//longs, 1):
             screen.addstr(random_y, i, "B", curses.color_pair(3))
             list_x.append([random_y, i])
-        return list_x
+    return list_y, list_x
 # keyboard events
 
 
@@ -159,22 +159,32 @@ def over_screen(score):
     screen.addstr(int(dim[0]/2)-2, int((dim[1]-len(msg2))/2), msg2+str(score))
     screen.refresh()
     time.sleep(2)
-    return 2
 
 
-def game_over(sn, sb, monster, sy, sx, score):
+
+def game_over(sn, sb, monster, sy, sx, wall_check, score):
     global screen
-    monster = [monster[:]] * 3
-    monster[1][1] += 1
-    monster[2][1] += 2
+    # monster = [monster[:]] * 3
+    # monster[1][1] += 1
+    # monster[2][1] += 2
+    monster = [monster]
+    for i in range(1, 3, 1):
+        monster.append([monster[0][0], monster[0][1] + i])
     dim = screen.getmaxyx()
     if sn in sb or sy == 1 or sy == dim[0]-1 or sx == 1 or sx == dim[1]-1:
         over_screen(score)
+        return 2
     if sn in monster:
         over_screen(score)
-    if sb in monster:
-        over_screen(score)
-
+        return 2
+    for i in range(len(monster)):
+        if monster[i] in sb:
+            over_screen(score)
+            return 2
+    for i in range(len(wall_check[0])):
+        if sn in wall_check[0][i]:
+            over_screen(score)
+            return 2
 # initialize curses screen, colors
 
 
@@ -201,6 +211,7 @@ def main(stdscr):
     global screen
     dim = screen.getmaxyx()
     color, speed, speed_change, score, space = 1, 0.1, 0.01, 0, 1
+    wall_check = []
     food_ok = True
     power_ok = True
     _objs = {
@@ -221,7 +232,7 @@ def main(stdscr):
     key = -1
     a = 1
     wall(space)
-    wall(2, 2, 0, 1, snake_body)
+    wall_check.append(wall(2, 2, 1, 1, snake_body))
     # wall(2, 2, 1, 0)
     # main loop for the game actions
 
@@ -241,8 +252,8 @@ def main(stdscr):
         _objs["snake"][0] += _objs["move"][0]
         _objs["snake"][1] += _objs["move"][1]
         screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "   ") # _objs["monsterxy"][0], _objs["monsterxy"][1]
-        _objs["monsterxy"][0] += monster(_objs["monsterxy"], _objs["mm"], "MON")[0]
-        _objs["monsterxy"][1] += monster(_objs["monsterxy"], _objs["mm"], "MON")[1]
+        _objs["monsterxy"][0] += monster(_objs["monsterxy"], _objs["mm"], "MON", wall_check)[0]
+        _objs["monsterxy"][1] += monster(_objs["monsterxy"], _objs["mm"], "MON", wall_check)[1]
         screen.addstr(_objs["snake"][0], _objs["snake"][1], "X", curses.color_pair(5) | curses.A_BOLD)
         # _objs["monsterxy"] = monster(_objs["monsterxy"], "MON")  # _objs["monsterxy"] =
         screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "MON")
@@ -278,7 +289,7 @@ def main(stdscr):
         #     score-=1
         #    if (powers[1] in range(monsterxy[1],len("MONSTER"))):
         #        powers_ok=True
-        a = game_over(_objs.get("snake"), snake_body, _objs["monsterxy"], _objs["snake"][0], _objs["snake"][1], score)
+        a = game_over(_objs.get("snake"), snake_body, _objs["monsterxy"], _objs["snake"][0], _objs["snake"][1], wall_check, score)
         # move snakes body (like peristaltic movement)
         last = snake_body[-1]
         for y in range(len(snake_body)-1, 0, -1):
