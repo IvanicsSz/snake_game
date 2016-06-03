@@ -88,15 +88,11 @@ def manufactory(snake_body, snake, wall, color):
     if place not in (snake_body+[snake]) and not inwall:
         screen.addstr(place[0], place[1], "F", curses.color_pair(color))
         return place
-# random place for the objects
 
 
-# handel the game over event
-
-    # print (inv)
+# print sorted highscore
 def print_highscore():
-    # global screen
-    curses.noecho()             # Disable default printing of inputs
+    curses.noecho()
     curses.curs_set(0)
     high_win = curses.newwin(curses.LINES, curses.COLS, 0, 0)
     dim = high_win.getmaxyx()
@@ -107,28 +103,29 @@ def print_highscore():
     for k, i in enumerate(open("highscore.csv", "r"), start=1):
         i = i.replace("\n", "")
         score_list.append(i.split(","))
+    for j in range(len(score_list)):
+        score_list[j][1] = int(score_list[j][1])
     print_list = score_list
     score_list = dict(score_list)
     print_list = sorted(score_list, key=score_list.get, reverse=True)
     key_max = len(max(score_list, key=len))
-    # print("{0:^{1}}".format("High Score:", key_max+5))
     high_win.addstr(5-2, int((dim[1]-key_max))//2, "{0:^{1}}".format("High Score:", key_max+5))
     for i in print_list:
-
         high_win.addstr(int(5+x), int((dim[1]-key_max))//2, "{0:>{2}}{1:>5}".format(i, score_list[i], key_max))
         x += 1
-        # print("{0:>{2}}{1:>5}".format(i, score_list[i], key_max))
     high_win.refresh()
     time.sleep(3)
     return main_menu()
 
 
+# write file
 def highscore(name, score):
     with open("highscore.csv", "a") as a:
         if score:
             a.write("{0},{1}\n".format(name, str(score)))
 
 
+# main menu at the beggining of the game
 def main_menu():
     colour_list = []
     curses.noecho()             # Disable default printing of inputs
@@ -164,6 +161,8 @@ def main_menu():
         main_win.addstr(int(dims[0]/2)-4, int((dims[1]-len(msg1))/2), msg1, graphics[0])
         main_win.refresh()
 
+
+# game over screen
 def over_screen(score):
     global screen
     dim = screen.getmaxyx()
@@ -177,12 +176,9 @@ def over_screen(score):
     time.sleep(2)
 
 
-
+# handle the game over event
 def game_over(sn, sb, monster, sy, sx, wall_check, score):
     global screen
-    # monster = [monster[:]] * 3
-    # monster[1][1] += 1
-    # monster[2][1] += 2
     monster = [monster]
     for i in range(1, 3, 1):
         monster.append([monster[0][0], monster[0][1] + i])
@@ -194,7 +190,6 @@ def game_over(sn, sb, monster, sy, sx, wall_check, score):
     if sn in monster:
         over_screen(score)
         print_highscore()
-
         return 2
     for i in range(len(monster)):
         if monster[i] in sb:
@@ -207,9 +202,9 @@ def game_over(sn, sb, monster, sy, sx, wall_check, score):
                 over_screen(score)
                 print_highscore()
                 return 2
+
+
 # initialize curses screen, colors
-
-
 def init():
     global screen
     curses.noecho()             # Disable default printing of inputs
@@ -224,12 +219,10 @@ def init():
     curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_YELLOW)
     curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
-
+# main loop function, with variables
 def main(stdscr):
-
     main_menu()
     init()
-    # main variables
     global screen
     dim = screen.getmaxyx()
     color, speed, speed_change, score, space = 1, 0.1, 0.01, 0, 1
@@ -246,41 +239,29 @@ def main(stdscr):
         "wall": [0, 0],
         "mm": [1, 1]
     }
-    # mypad = curses.newpad(10, 10)
-    # mypad_pos = 5
-    # mypad.border(0)
     start_monster = 25
     snake_body = [_objs["snake"][:]]*4
     last = snake_body[-1][:]
     key = -1
     a = 1
     wall(space)
-
-    # wall(2, 2, 1, 0)
-    # main loop for the game actions
-
     while a != 2:
         time.sleep(speed)
         speed_normalize(_objs["move"], speed)
-
         if last not in snake_body:
             screen.addstr(last[0], last[1], " ")
         screen.addstr(_objs["snake"][0], _objs["snake"][1], "X", curses.color_pair(color))
         screen.addstr(0, 0, 'SCORE:'+str(score))
-
         key = screen.getch()
         keyboard(key, _objs["move"])
         temp = []
-
         _objs["snake"][0] += _objs["move"][0]
         _objs["snake"][1] += _objs["move"][1]
         screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "   ") # _objs["monsterxy"][0], _objs["monsterxy"][1]
         _objs["monsterxy"][0] += monster(_objs["monsterxy"], _objs["mm"], "MON", wall_check)[0]
         _objs["monsterxy"][1] += monster(_objs["monsterxy"], _objs["mm"], "MON", wall_check)[1]
         screen.addstr(_objs["snake"][0], _objs["snake"][1], "X", curses.color_pair(5) | curses.A_BOLD)
-        # _objs["monsterxy"] = monster(_objs["monsterxy"], "MON")  # _objs["monsterxy"] =
         screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "MON")
-        # objects
         if power_ok:
             _objs["powers"] = manufactory(snake_body, _objs.get("snake"), wall_check, 4)
             power_ok = False
@@ -312,17 +293,10 @@ def main(stdscr):
             if _objs["powers"][1] in list(range(_objs["monsterxy"][1], _objs["monsterxy"][1] + len("MON"))):
                 powers_ok = True
         a = game_over(_objs.get("snake"), snake_body, _objs["monsterxy"], _objs["snake"][0], _objs["snake"][1], wall_check, score)
-        # move snakes body (like peristaltic movement)
         last = snake_body[-1]
         for y in range(len(snake_body)-1, 0, -1):
             snake_body[y] = snake_body[y-1][:]
         snake_body[0] = _objs["snake"][:]
-        # mypad.scrollok(1)
-        # mypad.idlok(1)
-        # mypad.scroll(-1)
-        # mypad.refresh(mypad_pos, 0, 10, 10, 35, 15)
-
-        # mypad.refresh()
         screen.refresh()
 # start the project
 name = input("Please type your name: ")
