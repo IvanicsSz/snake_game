@@ -4,10 +4,10 @@ from curses import KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_ENTER
 from curses import wrapper
 import random
 
+
 # move the monster
 def monster(mon, move, msg, wall_check):
     global screen
-
     dims = screen.getmaxyx()
     y = mon[0]
     x = mon[1]
@@ -44,7 +44,6 @@ def wall(space=2, longs=1, y=0, x=0, snake_body=[10, 10]):
         for i in range(space, (dims[0]-space)//longs, 1):
             screen.addstr(i, random_x, "B", curses.color_pair(3))
             list_y.append([i, random_x])
-
     if x:
         for i in range(space, (dims[1]-space)//longs, 1):
             screen.addstr(random_y, i, "B", curses.color_pair(3))
@@ -58,9 +57,9 @@ def speed_normalize(move, speed):
     if move[0]:
         time.sleep(speed / change)
 
+
 # keyboard events
 def keyboard(key, move):
-
     if key == KEY_DOWN and move[0] != -1:
         move[0], move[1] = 1, 0
         return move
@@ -115,7 +114,7 @@ def print_highscore():
         x += 1
     high_win.refresh()
     time.sleep(3)
-    return main_menu()
+    return wrapper(main)
 
 
 # write file
@@ -219,6 +218,8 @@ def init():
     curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_YELLOW)
     curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
+
+
 # main loop function, with variables
 def main(stdscr):
     main_menu()
@@ -246,22 +247,28 @@ def main(stdscr):
     a = 1
     wall(space)
     while a != 2:
+        # game sleep, speed
         time.sleep(speed)
         speed_normalize(_objs["move"], speed)
+        # clear the last element of the snake
         if last not in snake_body:
             screen.addstr(last[0], last[1], " ")
+        # draw the snake and score
         screen.addstr(_objs["snake"][0], _objs["snake"][1], "X", curses.color_pair(color))
         screen.addstr(0, 0, 'SCORE:'+str(score))
         key = screen.getch()
+        # controll function
         keyboard(key, _objs["move"])
         temp = []
+        # move the snake and the monster, create monster
         _objs["snake"][0] += _objs["move"][0]
         _objs["snake"][1] += _objs["move"][1]
-        screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "   ") # _objs["monsterxy"][0], _objs["monsterxy"][1]
+        screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "   ")  #  _objs["monsterxy"][0], _objs["monsterxy"][1]
         _objs["monsterxy"][0] += monster(_objs["monsterxy"], _objs["mm"], "MON", wall_check)[0]
         _objs["monsterxy"][1] += monster(_objs["monsterxy"], _objs["mm"], "MON", wall_check)[1]
         screen.addstr(_objs["snake"][0], _objs["snake"][1], "X", curses.color_pair(5) | curses.A_BOLD)
         screen.addstr(_objs["monsterxy"][0], _objs["monsterxy"][1], "MON")
+        # manage the food and the powerups
         if power_ok:
             _objs["powers"] = manufactory(snake_body, _objs.get("snake"), wall_check, 4)
             power_ok = False
@@ -278,21 +285,24 @@ def main(stdscr):
             screen.addstr(_objs["foods"][0], _objs["foods"][1], " ")
             snake_body.append(snake_body[-1])
             food_ok = True
+        # manage things by score change
         if score % 4 == 0 and score != 0 and food_ok:
             power_ok = True
         if score % 10 == 0 and score != 0 and wall_ok:
             wall_check.append(wall(2, 3, 1, 1, snake_body))
             wall_ok = False
-        if score % 10 != 0 and score != 0 and wall_ok == False:
+        if score % 10 != 0 and score != 0 and not wall_ok:
             wall_ok = True
-
+        # get new food and power ups if the monster eat them
         if _objs["monsterxy"][0] == _objs["foods"][0]:
             if _objs["foods"][1] in list(range(_objs["monsterxy"][1], _objs["monsterxy"][1] + len("MON"))):
                 food_ok = True
         if _objs["monsterxy"][0] == _objs["powers"][0]:
             if _objs["powers"][1] in list(range(_objs["monsterxy"][1], _objs["monsterxy"][1] + len("MON"))):
                 powers_ok = True
+        # game over events
         a = game_over(_objs.get("snake"), snake_body, _objs["monsterxy"], _objs["snake"][0], _objs["snake"][1], wall_check, score)
+        # snake shift
         last = snake_body[-1]
         for y in range(len(snake_body)-1, 0, -1):
             snake_body[y] = snake_body[y-1][:]
