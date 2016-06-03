@@ -9,6 +9,8 @@ import random
 def monster(mon, move, msg, wall_check):
     global screen
     dims = screen.getmaxyx()
+    wall_v = []
+    wall_h = []
     y = mon[0]
     x = mon[1]
     if y == dims[0]-2:
@@ -19,6 +21,23 @@ def monster(mon, move, msg, wall_check):
         move[1] = -1
     if x == 2:
         move[1] = 1
+    if wall_check:
+        for i in range(len(wall_check[0][0])):
+            wall_v.append(wall_check[0][0][i])
+            wall_h.append(wall_check[0][1][i])
+
+        if mon[1] - 1 == wall_v[0][1] and wall_v[-1][0] > mon[0]:
+            move[1] = 1
+
+        if mon[1] + 3 == wall_v[0][1] and wall_v[-1][0] > mon[0]:
+            move[1] = -1
+
+        if mon[0] - 1 == wall_h[-1][0] and wall_h[-1][1] > mon[1]:
+            move[0] = 1
+
+        if mon[0] + 1 == wall_h[-1][0] and wall_h[-1][1] > mon[1]:
+            move[0] = -1
+
     return move[0], move[1]
 
 
