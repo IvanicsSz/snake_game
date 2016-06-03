@@ -1,0 +1,20 @@
+Contributors:
+Csepella Miklos
+Ivanics Szilárd
+
+Snake current version:
+1. snake movement is working correctly (except the horizontal and vertical move not the same speed), with coloured head
+2. gameover screen at the end of the game
+3. score counting
+4. the food for the snake increases the snake length, and increases the speed
+5. you can move snake with arrow keys
+6. one power up: decrease snake's speed and add to score 5 point
+7. wall on the edges of the screen
+
+Featrues:
+# 1. near the same speed both in vertical and horizontal move
+# 2. welcome screen with menu on it
+# 3. highscore records
+4. new, red, 1 character wild walls appear by score increase
+5. there is a monster who bounces off the walls and kills snake when encountering
+    the monster can eat the food and power up by it
